@@ -5,7 +5,7 @@ export const metadata = { title: 'Social Music', description: 'Rede social de m√
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="pt-BR" className="dark">
+    <html lang="pt-BR" className="dark" suppressHydrationWarning>
       <body className="bg-[#f5f6fa] dark:bg-[#18191a] text-black dark:text-white transition-colors duration-300">
         <div className="flex min-h-screen">
           <Sidebar />
