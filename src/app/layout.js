@@ -1,4 +1,4 @@
-import './globals.css';
+import './globals.css'; 
 import Sidebar from '@/components/Sidebar';
 
 export const metadata = { title: 'Social Music', description: 'Rede social de música' };
