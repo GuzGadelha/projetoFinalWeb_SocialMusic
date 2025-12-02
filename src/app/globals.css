@@ -11,9 +11,3 @@
 body {
   font-family: 'Poppins', sans-serif;
 }
-
-@layer components {
-  .sidebar-theme {
-    @apply bg-white dark:bg-[#242526] border-r border-gray-200 dark:border-gray-800;
-  }
-}

@@ -21,7 +21,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <nav className="fixed left-0 top-0 h-full w-64 sidebar-theme flex flex-col p-4 z-50 shadow-xl">
+    <nav className="fixed left-0 top-0 h-full w-64 bg-white dark:bg-[#242526] border-r border-gray-200 dark:border-gray-800 flex flex-col p-4 z-50 shadow-xl">
       <div className="flex items-center gap-3 mb-10 px-2 text-[#6c63ff] font-bold text-xl">
         <span>🎵 SocialMusic</span>
       </div>
