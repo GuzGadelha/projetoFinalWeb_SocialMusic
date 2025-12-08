@@ -5,10 +5,10 @@ export const users = [
 ];
 
 export const musics = [
-  { id: "m1", titulo: "Stairway To Heaven", autor: "Led Zeppelin", album: "Led Zeppelin IV", duracao: 482 },
-  { id: "m2", titulo: "Do for Love", autor: "Tupac", album: "Single", duracao: 240 },
-  { id: "m3", titulo: "Chicago", autor: "Michael Jackson", album: "Xscape", duracao: 245 },
-  { id: "m4", titulo: "Neutron Star Collision", autor: "Muse", album: "Black Holes", duracao: 230 },
+  { id: "m1", titulo: "Stairway To Heaven", autor: "Led Zeppelin", album: "Led Zeppelin IV", duracao: 482, coverUrl: "assets/img/covers/cover1.jpg" },
+  { id: "m2", titulo: "Do for Love", autor: "Tupac", album: "Single", duracao: 240, coverUrl: "assets/img/covers/cover2.jpg" },
+  { id: "m3", titulo: "Chicago", autor: "Michael Jackson", album: "Xscape", duracao: 245, coverUrl: "assets/img/covers/cover3.jpg" },
+  { id: "m4", titulo: "Neutron Star Collision", autor: "Muse", album: "Black Holes", duracao: 230, coverUrl: "assets/img/covers/cover4.jpg" },
 ];
 
 export const playlists = [
@@ -20,3 +20,4 @@ export const comments = [
 ];
 
 export const favorites = ["m1", "m2"];
+
