@@ -15,7 +15,7 @@ export default function PlaylistDetail({ params }) {
     // Filtra as músicas da playlist
     const musicasNaPlaylist = musics.filter(m => playlist.musicasIds.includes(m.id));
 
-    const getAvaliacao = = (musicaId) => {
+    const getAvaliacao = (musicaId) => {
         const avaliacoes = comments.filter(c => c.musicaId === musicaId);
         if (avaliacoes.length === 0) return '-';
         
