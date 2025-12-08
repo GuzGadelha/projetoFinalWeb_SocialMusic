@@ -2,27 +2,30 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Modal from '@/components/Modal';
-import { playlists, users } from '@/lib/data';
+import { users } from '@/lib/data';
+import { Upload } from 'lucide-react';
+import { createServerParamsForMetadata } from 'next/dist/server/request/params';
 
 
-function PlaylistCard({ playlist}) {
-  const dono = users.find(u => u.id === playlist.donoId);
-    
-    return (
-        <Link href={`/playlist/${playlist.id}`} className="block">
-            <div className="bg-white dark:bg-[#242526] p-4 rounded shadow hover:scale-[1.02] transition duration-200 cursor-pointer border-l-4 border-transparent hover:border-[#6c63ff]">
-                <h3 className="font-bold text-lg text-[#6c63ff]">{playlist.titulo}</h3>
-                <p className="text-sm text-gray-500">Criado por: {dono?.nome || 'Desconhecido'}</p>
-                <p className="text-xs text-gray-400 mt-1">{playlist.musicasIds.length} músicas</p>
-            </div>
-        </Link>
-    );
-}
+ function PlaylistCard({ playlist }){
+        const dono = users.find(u => u.id === playlist.donoId);
+        const musicasCount = playlist.musicasIds ? playlist.musicasIds.length : 0;
+        return (
+            <Link href={`/playlist/${playlist.id}`} className = "block">
+                <div className="bg-white dark:bg-[#242526] p-4 rounded shadow hover:scale-[1.02] transition duration-200 cursor-pointer border-l-4 border-transparent hover:border-[#6c63ff]">
+                    <h3 className="font-bold text-lg text-[#6c63ff]"> {playlist.titulo} </h3>
+                    <p className="text-sm text-gray-500">Criado por: {dono?.nome || 'Desconhecido'}</p>
+                    <p className="text-xs text-gray-400 mt-1">{musicasCount} músicas</p>
+                    {playlist.privada && <span className="text-xs text-red-400 mt-1"> (Privada) </span>}
+                </div>
+            </Link>
+        );
+    }
 
 export default function PlaylistsPage() {
     const [playlists, setPlaylists] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [formData, setFormData] = useState({ titulo: '', descricao: '' });
+    const [formData, setFormData] = useState({ titulo: '', descricao: '', privada: false, coverFile: null });
 
     //  Carregar as playlists existentes
     useEffect(() =>  {
@@ -42,18 +45,25 @@ export default function PlaylistsPage() {
             body: JSON.stringify({ 
                 titulo: formData.titulo, 
                 descricao: formData.descricao,
-                donoId: user.id
+                donoId: user.id,
+                privada: formData.privada
             }),
         });
 
         if (res.ok) {
             const novaPlaylist = await res.json();
             setPlaylists([...playlists, novaPlaylist]);
-            setFormData({ titulo: '', descricao: '' });
+            setFormData({ titulo: '', descricao: '', privada: false, coverFile: null });
             setIsModalOpen(false);
             alert("Playlist criada com sucesso!");
         } else {
             alert('Erro ao criar playlist. Faça o login primeiro.');
+        }
+    };
+
+    const handleCoverChange = (e) => {
+        if (e.targer.files.length > 0) {
+            setFormData({ ...formData, coverFile: e.target.files[0] });
         }
     };
 
@@ -77,6 +87,21 @@ export default function PlaylistsPage() {
             {/* Modal para Criação */}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nova Playlist">
                 <form onSubmit={handleCreatePlaylist} className="flex flex-col gap-4">
+
+                    <div className="flex justify-center mb-4">
+                        <label htmlFor="cover-upload" className="w-48 h-48 bg-gray-700 dark:bg-gray-800 rounded-lg shadow-xl cursor-pointer flex flex-col items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition">
+                            {formData.coverFile ? (
+                                <span className="text-sm p-4 text-center">Arquivo selecionado: {formData.coverFile.name}</span>
+                            ) : (
+                                <>
+                                    <Upload size={32} />
+                                    <span className="mt-2 text-sm">Carregar Foto da Capa</span>
+                                </>
+                            )}
+                            <input id="cover-upload" type="file" accept="image/*" className="hidden" onChange={handleCoverChange} />
+                        </label>
+                    </div>
+
                     <input 
                         className="p-3 border rounded bg-gray-100 dark:bg-gray-700 dark:text-white"
                         type="text"
@@ -85,15 +110,34 @@ export default function PlaylistsPage() {
                         onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
                         required
                     />
+
+                    <div className="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded">
+                        <div>
+                            <p className="font-semibold dark:text-white">Playlist Privada</p>
+                            <p className="text-xs text-gray-500">Apenas você verá esta playlist.</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input 
+                                type="checkbox" 
+                                checked={formData.privada}
+                                onChange={(e) => setFormData({ ...formData, privada: e.target.checked })}
+                                className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#6c63ff]"></div>
+                        </label>
+                    </div>
+
                     <textarea 
                         className="p-3 border rounded bg-gray-100 dark:bg-gray-700 dark:text-white"
                         placeholder="Descrição (Opcional)"
                         value={formData.descricao}
                         onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
                     />
+
                     <button type="submit" className="bg-[#6c63ff] text-white p-3 rounded font-bold hover:opacity-90">
                         Criar Playlist
                     </button>
+
                 </form>
             </Modal>
         </div>
