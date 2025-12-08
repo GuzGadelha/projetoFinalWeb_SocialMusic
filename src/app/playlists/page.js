@@ -11,7 +11,7 @@ import { createServerParamsForMetadata } from 'next/dist/server/request/params';
         const dono = users.find(u => u.id === playlist.donoId);
         const musicasCount = playlist.musicasIds ? playlist.musicasIds.length : 0;
         return (
-            <Link href={`/playlist/${playlist.id}`} className = "block">
+            <Link key={playlist.id} href={`/playlist/${playlist.id}`} className = "block">
                 <div className="bg-white dark:bg-[#242526] p-4 rounded shadow hover:scale-[1.02] transition duration-200 cursor-pointer border-l-4 border-transparent hover:border-[#6c63ff]">
                     <h3 className="font-bold text-lg text-[#6c63ff]"> {playlist.titulo} </h3>
                     <p className="text-sm text-gray-500">Criado por: {dono?.nome || 'Desconhecido'}</p>

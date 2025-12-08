@@ -1,19 +1,27 @@
 'use client';
+import { useParams } from 'next/navigation';
 import { musics, playlists, users, comments } from '@/lib/data';
-import { Heart, Share2, MoreHorizontal, Clock, Star } from 'lucide-react';
+import { Heart, Share2, MoreHorizontal, Clock, Star } from 'lucide-react'; 
 
-export default function PlaylistDetail({ params }) {
+export default function PlaylistDetail() {
+    const params = useParams();
     const playlistId = params.id;
+
     const playlist = playlists.find(p => p.id === playlistId);
 
     if (!playlist) {
-        return <div className="text-red-500 mt-10 text-center">Playlist não encontrada!</div>;
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
+                <h2 className="text-red-500 text-2xl font-bold mb-2">Playlist não encontrada!</h2>
+                <p className="text-gray-400">Verifique se o ID "{playlistId}" está correto.</p>
+            </div>
+        );
     }
 
     const dono = users.find(u => u.id === playlist.donoId);
     
-    // Filtra as músicas da playlist
-    const musicasNaPlaylist = musics.filter(m => playlist.musicasIds.includes(m.id));
+    const listaIds = playlist.musicasIds || [];
+    const musicasNaPlaylist = musics.filter(m => listaIds.includes(m.id));
 
     const getAvaliacao = (musicaId) => {
         const avaliacoes = comments.filter(c => c.musicaId === musicaId);
@@ -23,75 +31,96 @@ export default function PlaylistDetail({ params }) {
         return `${(soma / avaliacoes.length).toFixed(1)}/5`;
     };
 
-    // Calcula a duração total
     const duracaoTotalSegundos = musicasNaPlaylist.reduce((sum, m) => sum + (m.duracao || 0), 0);
-    const duracaoTotalFormatada = `${Math.floor(duracaoTotalSegundos / 60)} min ${duracaoTotalSegundos % 60} seg`;
+    const duracaoTotalFormatada = `${Math.floor(duracaoTotalSegundos / 60)} min ${(duracaoTotalSegundos % 60).toString().padStart(2, '0')} seg`;
     
+    const playlistCoverUrl = musicasNaPlaylist[0]?.coverUrl || '/assets/img/itunes.png';
+
     return (
-        <div className="text-white">
-            <div className="flex bg-gradient-to-br from-purple-800 to-black p-8 rounded-lg mb-8">
-                <div className="w-48 h-48 bg-gray-700 rounded-lg shadow-xl mr-6 flex items-center justify-center text-6xl text-purple-400">
+        <div className="text-white pb-10">
+            <div className="flex flex-col md:flex-row items-center md:items-end bg-gradient-to-b from-purple-900/50 to-black/50 p-8 rounded-t-2xl mb-6">
+                <div className="w-52 h-52 shadow-2xl mr-6 mb-4 md:mb-0 shrink-0 bg-gray-800 rounded flex items-center justify-center overflow-hidden">
                     <img 
                         src={playlistCoverUrl} 
-                        alt="Capa" 
+                        alt={`Capa de ${playlist.titulo}`} 
                         className="w-full h-full object-cover"
                     />
                 </div>
-                <div>
-                    <p className="text-sm uppercase text-gray-400 font-semibold">Playlist</p>
-                    <h1 className="text-5xl md:text-7xl font-extrabold my-2">{playlist.titulo}</h1>
-                    <p className="text-gray-300 mb-4">{playlist.descricao || "Nenhuma descrição fornecida."}</p>
-                    <p className="text-sm text-gray-400">Criada por: <span className="text-white font-bold">{dono?.nome || 'Artista'}</span></p>
-                    <p className="text-sm text-gray-400">{musicasNaPlaylist.length} músicas • {duracaoTotalFormatada}</p>
+                
+                <div className="flex flex-col gap-2 text-center md:text-left">
+                    <span className="text-xs uppercase font-bold tracking-wider text-gray-300">Playlist</span>
+                    <h1 className="text-4xl md:text-7xl font-black text-white drop-shadow-md">{playlist.titulo}</h1>
+                    <p className="text-gray-400 text-sm mt-2">{playlist.descricao || "Sem descrição."}</p>
+                    
+                    <div className="flex items-center justify-center md:justify-start gap-2 text-sm text-gray-300 mt-2 font-medium">
+                        <span className="text-white font-bold">{dono?.nome || 'Usuário'}</span>
+                        <span>•</span>
+                        <span>{musicasNaPlaylist.length} músicas,</span>
+                        <span className="text-gray-400 font-normal">{duracaoTotalFormatada}</span>
+                    </div>
                 </div>
             </div>
 
-            {/* Ações e Botões */}
-            <div className="flex items-center gap-6 mb-8 pl-4">
-                <button className="bg-[#6c63ff] text-white px-6 py-2 rounded-full font-bold hover:bg-purple-700 transition">
-                    ▶ Play
+            <div className="flex items-center justify-center md:justify-start gap-6 px-6 mb-8">
+                <button className="bg-[#6c63ff] text-white w-14 h-14 rounded-full flex items-center justify-center hover:scale-105 transition hover:bg-purple-600 shadow-lg shadow-purple-900/40">
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 ml-1"><path d="M8 5v14l11-7z" /></svg>
                 </button>
-                <Heart size={24} className="text-gray-400 hover:text-red-500 cursor-pointer" />
-                <Share2 size={24} className="text-gray-400 hover:text-[#6c63ff] cursor-pointer" />
-                <MoreHorizontal size={24} className="text-gray-400 hover:text-white cursor-pointer" />
+                <Heart size={32} className="text-gray-400 hover:text-red-500 cursor-pointer transition" />
+                <Share2 size={28} className="text-gray-400 hover:text-white cursor-pointer transition" />
+                <MoreHorizontal size={28} className="text-gray-400 hover:text-white cursor-pointer transition" />
             </div>
 
-            {/* Tabela de Músicas */}
-            <div className="overflow-x-auto">
-                <table className="min-w-full text-sm text-left text-gray-400">
-                    <thead className="text-xs uppercase text-gray-500 border-b border-gray-700">
-                        <tr>
-                            <th scope="col" className="px-6 py-3">#</th>
-                            <th scope="col" className="px-6 py-3">TÍTULO</th>
-                            <th scope="col" className="px-6 py-3">ARTISTA</th>
-                            <th scope="col" className="px-6 py-3">ÁLBUM</th>
-                            <th scope="col" className="px-6 py-3">AVALIAÇÃO</th>
-                            <th scope="col" className="px-6 py-3"><Clock size={16} /></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {musicasNaPlaylist.map((musica, index) => (
-                            <tr key={musica.id} className="border-b dark:border-gray-800 hover:bg-[#242526] transition-colors duration-150">
-                                <td className="px-6 py-3 font-medium text-gray-300">{index + 1}</td>
-                                <td className="px-6 py-3 font-medium text-white flex items-center gap-3">
-                                    <img 
-                                    src={musica.coverUrl ||'/assets/img/itunes.png'}
-                                    alt='Capa'
-                                    className='w-10 h-10 rounded object-cover'
-                                    />
-                                    {musica.titulo}
-                                </td>
-                                <td className="px-6 py-3">{musica.autor}</td>
-                                <td className="px-6 py-3">{musica.album}</td>
-                                <td className="px-6 py-3 flex items-center gap-1 mt-2">
-                                    <Star size={14} className="text-yellow-400 fill-yellow-400" /> 
-                                    {getAvaliacao(musica.id)}
-                                </td>
-                                <td className="px-6 py-3">{Math.floor(musica.duracao / 60)}:{musica.duracao % 60}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            <div className="px-6">
+                {musicasNaPlaylist.length === 0 ? (
+                    <p className="text-gray-500 text-center py-10">Esta playlist ainda não tem músicas.</p>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left text-gray-400 border-collapse">
+                            <thead className="text-xs uppercase text-gray-500 border-b border-gray-800">
+                                <tr>
+                                    <th className="px-4 py-3 text-center w-12">#</th>
+                                    <th className="px-4 py-3">Título</th>
+                                    <th className="px-4 py-3">Álbum</th>
+                                    <th className="px-4 py-3">Avaliação</th>
+                                    <th className="px-4 py-3 text-right"><Clock size={16} className="inline"/></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {musicasNaPlaylist.map((musica, index) => (
+                                    <tr key={musica.id} className="group hover:bg-white/10 rounded-md transition-colors">
+                                        <td className="px-4 py-3 text-center align-middle rounded-l-md">
+                                            <span className="group-hover:hidden">{index + 1}</span>
+                                            <span className="hidden group-hover:inline text-white">▶</span>
+                                        </td>
+                                        <td className="px-4 py-3 align-middle">
+                                            <div className="flex items-center gap-4">
+                                                <img 
+                                                    src={musica.coverUrl || '/assets/img/itunes.png'} 
+                                                    alt="Capa" 
+                                                    className="w-10 h-10 rounded object-cover"
+                                                />
+                                                <div className="flex flex-col">
+                                                    <span className="text-white font-medium text-base hover:underline cursor-pointer">{musica.titulo}</span>
+                                                    <span className="text-gray-400 text-xs hover:underline cursor-pointer hover:text-white">{musica.autor}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3 align-middle hover:text-white cursor-pointer">{musica.album}</td>
+                                        <td className="px-4 py-3 align-middle">
+                                            <div className="flex items-center gap-1">
+                                                <Star size={14} className={getAvaliacao(musica.id) !== '-' ? "text-yellow-400 fill-yellow-400" : "text-gray-600"} />
+                                                <span className={getAvaliacao(musica.id) !== '-' ? "text-white" : ""}>{getAvaliacao(musica.id)}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3 text-right align-middle rounded-r-md font-mono">
+                                            {Math.floor(musica.duracao / 60)}:{(musica.duracao % 60).toString().padStart(2, '0')}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
         </div>
     );
