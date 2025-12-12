@@ -2,11 +2,24 @@
 import { useParams } from 'next/navigation';
 import { musics, playlists, users, comments } from '@/lib/data';
 import { Heart, Share2, MoreHorizontal, Clock, Star } from 'lucide-react'; 
+import { useState, useEffect } from 'react';
 
 export default function PlaylistDetail() {
     const params = useParams();
     const playlistId = params.id;
 
+    // ESTADOS PARA INTERAÇÃO
+    const [isLiked, setIsLiked] = useState(false);
+
+    // 1. Lógica para carregar se já foi curtida (Persistência via LocalStorage)
+    useEffect(() => {
+        const curtidasSalvas = JSON.parse(localStorage.getItem('playlistsFavoritas') || '[]');
+        if (curtidasSalvas.includes(playlistId)) {
+            setIsLiked(true);
+        }
+    }, [playlistId]);
+
+    // 2. Busca de dados básicos
     const playlist = playlists.find(p => p.id === playlistId);
 
     if (!playlist) {
@@ -19,25 +32,49 @@ export default function PlaylistDetail() {
     }
 
     const dono = users.find(u => u.id === playlist.donoId);
-    
     const listaIds = playlist.musicasIds || [];
     const musicasNaPlaylist = musics.filter(m => listaIds.includes(m.id));
 
+    // Cálculos de Média e Duração
     const getAvaliacao = (musicaId) => {
         const avaliacoes = comments.filter(c => c.musicaId === musicaId);
         if (avaliacoes.length === 0) return '-';
-        
         const soma = avaliacoes.reduce((sum, c) => sum + (c.avaliacao || 0), 0);
         return `${(soma / avaliacoes.length).toFixed(1)}/5`;
     };
 
     const duracaoTotalSegundos = musicasNaPlaylist.reduce((sum, m) => sum + (m.duracao || 0), 0);
     const duracaoTotalFormatada = `${Math.floor(duracaoTotalSegundos / 60)} min ${(duracaoTotalSegundos % 60).toString().padStart(2, '0')} seg`;
-    
-    const playlistCoverUrl = musicasNaPlaylist[0]?.coverUrl || '/assets/img/itunes.png';
+    const playlistCoverUrl = musicasNaPlaylist[0]?.coverUrl || '/assets/img/itunes.png'; // Fallback se não tiver música
+
+    // Função do Coração (Salva no LocalStorage para a página de Favoritas usar depois)
+    const toggleLike = () => {
+        const curtidasAtuais = JSON.parse(localStorage.getItem('playlistsFavoritas') || '[]');
+        let novasCurtidas;
+
+        if (isLiked) {
+            // Se já curtiu, remove da lista
+            novasCurtidas = curtidasAtuais.filter(id => id !== playlistId);
+        } else {
+            // Se não curtiu, adiciona na lista
+            novasCurtidas = [...curtidasAtuais, playlistId];
+        }
+
+        localStorage.setItem('playlistsFavoritas', JSON.stringify(novasCurtidas));
+        setIsLiked(!isLiked);
+    };
+
+    // Função de Compartilhar (Copia o Link)
+    const handleShare = () => {
+        const linkAtual = window.location.href;
+        navigator.clipboard.writeText(linkAtual)
+            .then(() => alert("Link copiado para a área de transferência!"))
+            .catch(() => alert("Erro ao copiar link."));
+    };
 
     return (
         <div className="text-white pb-10">
+            {/* Header */}
             <div className="flex flex-col md:flex-row items-center md:items-end bg-gradient-to-b from-purple-900/50 to-black/50 p-8 rounded-t-2xl mb-6">
                 <div className="w-52 h-52 shadow-2xl mr-6 mb-4 md:mb-0 shrink-0 bg-gray-800 rounded flex items-center justify-center overflow-hidden">
                     <img 
@@ -61,15 +98,27 @@ export default function PlaylistDetail() {
                 </div>
             </div>
 
+            {/* BARRA DE AÇÕES (MODIFICADA) */}
             <div className="flex items-center justify-center md:justify-start gap-6 px-6 mb-8">
-                <button className="bg-[#6c63ff] text-white w-14 h-14 rounded-full flex items-center justify-center hover:scale-105 transition hover:bg-purple-600 shadow-lg shadow-purple-900/40">
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 ml-1"><path d="M8 5v14l11-7z" /></svg>
+                
+                {/* BOTÃO CORAÇÃO (Like) */}
+                <button onClick={toggleLike} title={isLiked ? "Remover dos favoritos" : "Adicionar aos favoritos"}>
+                    <Heart 
+                        size={32} 
+                        className={`transition cursor-pointer ${isLiked ? "text-red-500 fill-red-500" : "text-gray-400 hover:text-white"}`} 
+                    />
                 </button>
-                <Heart size={32} className="text-gray-400 hover:text-red-500 cursor-pointer transition" />
-                <Share2 size={28} className="text-gray-400 hover:text-white cursor-pointer transition" />
+
+                {/* BOTÃO SHARE (Copiar Link) */}
+                <button onClick={handleShare} title="Copiar Link">
+                    <Share2 size={28} className="text-gray-400 hover:text-[#6c63ff] cursor-pointer transition" />
+                </button>
+
+                {/* BOTÃO MAIS (Sem função por enquanto) */}
                 <MoreHorizontal size={28} className="text-gray-400 hover:text-white cursor-pointer transition" />
             </div>
 
+            {/* Tabela de Músicas */}
             <div className="px-6">
                 {musicasNaPlaylist.length === 0 ? (
                     <p className="text-gray-500 text-center py-10">Esta playlist ainda não tem músicas.</p>
