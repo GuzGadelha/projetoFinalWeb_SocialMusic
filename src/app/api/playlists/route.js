@@ -8,14 +8,14 @@ export async function GET(){
 export async function POST(request){
     
     const body = await request.json();
-    const { titulo, descricao, donoId } = body;
+    const { titulo, descricao, donoId, privada } = body;
 
     const novaPlaylist = {
         id: Date.now().toString, 
         titulo, 
         descricao, 
         donoId, 
-        privada: false, 
+        privada: privada || false, 
         musicaIds: [] 
     };
 
