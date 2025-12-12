@@ -12,7 +12,7 @@ import { createServerParamsForMetadata } from 'next/dist/server/request/params';
     const musicasCount = playlist.musicasIds ? playlist.musicasIds.length : 0;
 
     return (
-            <Link href={`/playlists/${playlist.id}`} className="block">
+            <Link href={`/playlist/${playlist.id}`} className="block">
             <div className="bg-white dark:bg-[#242526] p-4 rounded shadow hover:scale-[1.02] transition duration-200 cursor-pointer border-l-4 border-transparent hover:border-[#6c63ff]">
                 <h3 className="font-bold text-lg text-[#6c63ff]"> {playlist.titulo} </h3>
                 <p className="text-sm text-gray-500">Criado por: {dono?.nome || 'Desconhecido'}</p>
@@ -73,7 +73,9 @@ export default function PlaylistsPage() {
             <h1 className="text-3xl font-bold mb-6">Minhas Playlists</h1>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {playlists.map(p => <PlaylistCard key={p.id} playlist={p} />)}
+                {playlists.map((p, index) => (
+                    <PlaylistCard key={p.id || index} playlist={p} />
+                ))}
             </div>
 
             {/* Botão Flutuante */}
